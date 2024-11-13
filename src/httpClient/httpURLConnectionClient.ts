@@ -148,37 +148,39 @@ class HttpURLConnectionClient implements ClientInterface {
                 });
 
                 res.on("end", (): void => {
-                    if (!res.complete) {
-                        reject(new Error("The connection was terminated while the message was still being sent"));
-                    }
-
-                    if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
-                        try {
-                            const formattedData: ApiError | {[key: string]: never} = JSON.parse(response.body);
-                            const isApiError = "status" in formattedData;
-                            const isRequestError = "errors" in formattedData;
-
-                            if (isApiError) {
-                                exception = new HttpClientException({
-                                    message: `HTTP Exception: ${formattedData.status}. ${res.statusMessage}: ${formattedData.message}`,
-                                    statusCode: formattedData.status,
-                                    errorCode: formattedData.errorCode,
-                                    responseHeaders: res.headers,
-                                    responseBody: response.body,
-                                });
-                            } else if (isRequestError) {
-                                exception = new Error(response.body);
-                            } else {
-                                exception = getException(response.body);
-                            }
-                        } catch (e) {
-                            reject(exception);
-                        } finally {
-                            reject(exception);
+                    queueMicrotask(() => {
+                        if (!res.complete) {
+                            reject(new Error("The connection was terminated while the message was still being sent"));
                         }
-                    }
-
-                    resolve(response.body as string);
+    
+                        if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
+                            try {
+                                const formattedData: ApiError | {[key: string]: never} = JSON.parse(response.body);
+                                const isApiError = "status" in formattedData;
+                                const isRequestError = "errors" in formattedData;
+    
+                                if (isApiError) {
+                                    exception = new HttpClientException({
+                                        message: `HTTP Exception: ${formattedData.status}. ${res.statusMessage}: ${formattedData.message}`,
+                                        statusCode: formattedData.status,
+                                        errorCode: formattedData.errorCode,
+                                        responseHeaders: res.headers,
+                                        responseBody: response.body,
+                                    });
+                                } else if (isRequestError) {
+                                    exception = new Error(response.body);
+                                } else {
+                                    exception = getException(response.body);
+                                }
+                            } catch (e) {
+                                reject(exception);
+                            } finally {
+                                reject(exception);
+                            }
+                        }
+    
+                        resolve(response.body as string);
+                    });
                 });
 
                 res.on("error", reject);

@@ -1,5 +1,5 @@
 {
-  "name": "@adyen/api-library",
+  "name": "@vicary/adyen-api",
   "version": "24.0.0",
   "description": "The Adyen API Library for NodeJS enables you to work with Adyen APIs.",
   "main": "lib/src/index.js",
