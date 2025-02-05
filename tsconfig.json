@@ -20,7 +20,6 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noUnusedLocals": true,
-    "suppressImplicitAnyIndexErrors": true,
     "plugins": [
       {
         "transform": "ts-auto-mock/transformer",
